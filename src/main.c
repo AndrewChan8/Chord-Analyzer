@@ -35,7 +35,11 @@ int main(){
     while(i < note_count){
       spacings = getNoteSpacings(root, note_count);
 
-      chord = findChord(spacings, root->note, note_count);
+      if(note_count == 3){
+        chord = findChord(spacings, root->note, note_count);
+      }else if(note_count == 4){
+        chord = findChord2(spacings, root->note, note_count);
+      }
       if(strcmp(chord, "Unknown Chord") == 0){
         i++;
         root = rotate(root);

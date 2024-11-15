@@ -5,5 +5,6 @@
 
 int *getNoteSpacings(struct Node *head, int numNotes);
 char *findChord(int *spacings, char *root, int numSpacings);
+char *findChord2(int *spacings, char *root, int numSpacings);
 
 #endif

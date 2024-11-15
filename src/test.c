@@ -15,16 +15,16 @@ typedef struct{
   const char* chord_name;
 } SeventhPatterns;
 
-TriadPatterns chord_patterns[] = {
+TriadPatterns triad_patterns[] = {
   {{4, 3}, "Major Triad"},
   {{3, 4}, "Minor Triad"},
   {{3, 3}, "Diminished Triad"},
   {{4, 4}, "Augmented Triad"},
   {{2, 5}, "Sus2 Triad"},
-  {{5, 2}, "Sus4 Triad"},
+  {{5, 2}, "Sus4 Triad"}
 };
 
-SeventhPatterns test_patterns[] = {
+SeventhPatterns chord_patterns[] = {
   {{4, 3, 4}, "Major 7th"},
   {{4, 3, 3}, "Dominant 7th"},
   {{3, 4, 3}, "Minor 7th"},
@@ -53,29 +53,26 @@ int *getNoteSpacings(struct Node *head, int numNotes) {
 char *findChord(int *spacings, char *root, int numSpacings) {
   char *chord = (char *)malloc(CHORD_SIZE * sizeof(char));
 
-  for (int i = 0; i < sizeof(chord_patterns) / sizeof(chord_patterns[0]); i++) {
-    if (spacings[0] == chord_patterns[i].intervals[0] &&
-        spacings[1] == chord_patterns[i].intervals[1]) {
-      snprintf(chord, CHORD_SIZE, "%s %s", root, chord_patterns[i].chord_name);
-      return chord;
+  if (numSpacings == 2) {
+    for (int i = 0; i < sizeof(triad_patterns) / sizeof(triad_patterns[0]); i++) {
+      if (spacings[0] == triad_patterns[i].intervals[0] &&
+          spacings[1] == triad_patterns[i].intervals[1]) {
+        snprintf(chord, CHORD_SIZE, "%s %s", root, triad_patterns[i].chord_name);
+        return chord;
+      }
     }
   }
 
-  snprintf(chord, CHORD_SIZE, "Unknown Chord");
-  return chord;
-}
-
-char *findChord2(int *spacings, char *root, int numSpacings) {
-  char *chord = (char *)malloc(CHORD_SIZE * sizeof(char));
-
-  for (int i = 0; i < sizeof(test_patterns) / sizeof(test_patterns[0]); i++) {
-    if (spacings[0] == test_patterns[i].intervals[0] &&
-        spacings[1] == test_patterns[i].intervals[1] &&
-        spacings[2] == test_patterns[i].intervals[2]) {
-      snprintf(chord, CHORD_SIZE, "%s %s", root, test_patterns[i].chord_name);
-      return chord;
-    }
-  }
+  // if (numSpacings == 3) {
+  //   for (int i = 0; i < sizeof(chord_patterns) / sizeof(chord_patterns[0]); i++) {
+  //     if (spacings[0] == chord_patterns[i].intervals[0] &&
+  //         spacings[1] == chord_patterns[i].intervals[1] &&
+  //         spacings[2] == chord_patterns[i].intervals[2]) {
+  //       snprintf(chord, CHORD_SIZE, "%s %s", root, chord_patterns[i].chord_name);
+  //       return chord;
+  //     }
+  //   }
+  // }
 
   snprintf(chord, CHORD_SIZE, "Unknown Chord");
   return chord;
