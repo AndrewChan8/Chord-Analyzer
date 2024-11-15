@@ -7,6 +7,7 @@ struct Node* createNode(char *note);
 void insert(struct Node *head, char *note);
 void printList(struct Node *head);
 int getLength(struct Node *head);
+void freeList(struct Node *head);
 
 char capitalizeNotes(char note);
 int getNoteNumber(char *note);
@@ -47,6 +48,8 @@ int main(){
   char *chord = findChord(spacings, root->note, note_count);
 
   printf("%s \n", chord);
+  free(spacings);
+  freeList(root);
 }
 
 struct Node* createNode(char *note){
@@ -82,6 +85,17 @@ int getLength(struct Node *head){
   }
   return count;
 }
+
+void freeList(struct Node *head) {
+  struct Node *current = head;
+  while (current != NULL) {
+    struct Node *temp = current;
+    current = current->next;
+    free(temp->note);
+    free(temp);
+  }
+}
+
 
 char capitalizeNotes(char note) {
   return toupper(note);
