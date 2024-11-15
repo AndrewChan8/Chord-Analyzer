@@ -61,10 +61,13 @@ int getNoteNumber(char *note) {
     default: return -1;
   }
 
-  if (note[1] == 'b') {
-    num--;
-  } else if (note[1] == '#') {
-    num++;
+  int i = 0;
+  while(note[++i]){
+    if (note[i] == 'b') {
+      num--;
+    } else if (note[i] == '#') {
+      num++;
+    }
   }
 
   return num;
