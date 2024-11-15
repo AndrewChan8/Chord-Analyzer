@@ -45,8 +45,9 @@ int main(){
     }
 
     char *newChord = (char *)malloc(CHORD_SIZE * sizeof(char));
-
-    if(i == 1){
+    if(strcmp(chord, "Unknown Chord") == 0){
+      printf("Unknown Chord\n");
+    }else if(i == 1){
       snprintf(newChord, CHORD_SIZE, "%s (2nd Inversion)", chord);
       printf("%s \n", newChord);
     }else if(i == 2){

@@ -5,6 +5,20 @@
 #include "../include/chord.h"
 #include "../include/utils.h"
 
+typedef struct{
+  int intervals[2];
+  const char* chord_name;
+} TriadPatterns;
+
+TriadPatterns chord_patterns[] = {
+  {{4, 3}, "Major Triad"},
+  {{3, 4}, "Minor Triad"},
+  {{3, 3}, "Diminished Triad"},
+  {{4, 4}, "Augmented Triad"},
+  {{2, 5}, "Sus2 Triad"},
+  {{5, 2}, "Sus4 Triad"},
+};
+
 int *getNoteSpacings(struct Node *head, int numNotes) {
   int *spacings = (int *)malloc(sizeof(int) * (numNotes - 1));
   struct Node *temp = head;
@@ -23,25 +37,14 @@ int *getNoteSpacings(struct Node *head, int numNotes) {
 char *findChord(int *spacings, char *root, int numSpacings) {
   char *chord = (char *)malloc(CHORD_SIZE * sizeof(char));
 
-  if(spacings[0] == 4){
-    if(spacings[1] == 3){
-      snprintf(chord, CHORD_SIZE, "%s Major Triad", root);
-    }else if(spacings[1] == 4){
-      snprintf(chord, CHORD_SIZE, "%s Augmented Triad", root);
-    }else{
-      snprintf(chord, CHORD_SIZE, "Unknown Chord");
+  for (int i = 0; i < sizeof(chord_patterns) / sizeof(chord_patterns[0]); i++) {
+    if (spacings[0] == chord_patterns[i].intervals[0] &&
+        spacings[1] == chord_patterns[i].intervals[1]) {
+      snprintf(chord, CHORD_SIZE, "%s %s", root, chord_patterns[i].chord_name);
+      return chord;
     }
-  }else if(spacings[0] == 3){
-    if(spacings[1] == 3){
-      snprintf(chord, CHORD_SIZE, "%s Diminished Triad", root);
-    }else if(spacings[1] == 4){
-      snprintf(chord, CHORD_SIZE, "%s Minor Triad", root);
-    }else{
-      snprintf(chord, CHORD_SIZE, "Unknown Chord");
-    }
-  }else{
-    snprintf(chord, CHORD_SIZE, "Unknown Chord");
   }
 
+  snprintf(chord, CHORD_SIZE, "Unknown Chord");
   return chord;
 }
