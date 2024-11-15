@@ -3,26 +3,30 @@
 #include <string.h>
 #include <ctype.h>
 
-void capitalizeNotes(char *note);
+#define CHORD_SIZE 128
+
+struct Node *createNode(char *note);
+void insert(struct Node *head, char *note);
+void printList(struct Node *head);
+int getLength(struct Node *head);
+struct Node *rotate(struct Node *root);
+void freeList(struct Node *head);
+
+char capitalizeNotes(char note);
 int getNoteNumber(char *note);
 int *getNoteSpacings(struct Node *head, int numNotes);
 char *findChord(int *spacings, char *root, int numSpacings);
-void cycleLeft(struct Node **head);
-struct Node* createNode(char *note);
-void insert(struct Node **head, char *note);
-void printList(struct Node *head);
 
 struct Node{
   char *note;
   struct Node *next;
 };
 
-int main(int argc, char *argv[]) {
+int main(){
   while(1){
     struct Node *root = NULL;
     char input[128];
     int *spacings;
-    int note_count = 0;
 
     printf("Enter notes (separated by spaces):\n");
     fgets(input, sizeof(input), stdin);
@@ -31,61 +35,112 @@ int main(int argc, char *argv[]) {
       break;
     }
 
-    // Tokenize the input and insert into the linked list
     char *token = strtok(input, " \n");
     while (token != NULL) {
-      capitalizeNotes(token);  // Capitalize the note
-      insert(&root, token);
-      note_count++;
+      token[0] = capitalizeNotes(token[0]);
+      if (root == NULL) {
+        root = createNode(token);
+      } else {
+        insert(root, token);
+      }
       token = strtok(NULL, " \n");
     }
 
-    printf("\n");
-
-    // Traverse the linked list to collect the notes into an array for processing
-    struct Node *temp = root;
-    char *notes[128];
-    int i = 0;
-    while (temp != NULL) {
-      notes[i++] = temp->note;
-      temp = temp->next;
-    }
-
-    spacings = getNoteSpacings(root, note_count);
-
-    // Find the chord by cycling through possible inversions
+    int note_count = getLength(root);
     char *chord;
-    int j = 0;
-    while (j < note_count) {
-      chord = findChord(spacings, notes[0], note_count);
-      if (strcmp(chord, "Unknown Chord") == 0) {
-        j++;
-        cycleLeft(&root);  // Rotate the linked list to simulate inversion
-        temp = root;
-        i = 0;
-        // Rebuild the notes array after modifying the linked list
-        while (temp != NULL) {
-          notes[i++] = temp->note;
-          temp = temp->next;
-        }
-      } else {
+    int i = 0;
+    while(i < note_count){
+      spacings = getNoteSpacings(root, note_count);
+
+      chord = findChord(spacings, root->note, note_count);
+      if(strcmp(chord, "Unknown Chord") == 0){
+        i++;
+        root = rotate(root);
+      }else{
         break;
       }
     }
 
-    printf("\nChord: %s\n", chord);
+    char *newChord = (char *)malloc(CHORD_SIZE * sizeof(char));
 
+    if(i == 1){
+      snprintf(newChord, CHORD_SIZE, "%s (2nd Inversion)", chord);
+      printf("%s \n", newChord);
+    }else if(i == 2){
+      snprintf(newChord, CHORD_SIZE, "%s (1st Inversion)", chord);
+      printf("%s \n", newChord);
+    }else{
+      printf("%s \n", chord);
+    }
+
+    free(newChord);
     free(spacings);
+    free(chord);
+    freeList(root);
   }
-
-  return 0;
 }
 
-// Capitalize the notes
-void capitalizeNotes(char *note) {
-  for (int i = 0; note[i]; i++) {
-    note[i] = toupper(note[i]);  // Convert each character to uppercase
+struct Node *createNode(char *note){
+  struct Node *new = (struct Node *)malloc(sizeof(struct Node));
+  new->note = strdup(note);
+  new->next = NULL;
+}
+
+void insert(struct Node *head, char *note) {
+  struct Node* newNode = createNode(note);
+  struct Node* temp = head;
+  while (temp->next != NULL) {
+    temp = temp->next;
   }
+  temp->next = newNode;
+}
+
+void printList(struct Node *head) {
+  struct Node *current = head;
+  while (current != NULL) {
+    printf("%s ", current->note);
+    current = current->next;
+  }
+  printf("\n");
+}
+
+int getLength(struct Node *head){
+  int count = 0;
+  struct Node *temp = head;
+  while(temp != NULL){
+    temp = temp->next;
+    count++;
+  }
+  return count;
+}
+
+struct Node *rotate(struct Node *root){
+  struct Node *oldRoot = root;
+  struct Node *newRoot = root->next;
+
+  struct Node* current = root;
+  while (current->next != NULL) {
+    current = current->next;
+  }
+
+  current->next = oldRoot;
+  oldRoot->next = NULL;
+
+  return newRoot;
+}
+
+void freeList(struct Node *head) {
+  struct Node *current = head;
+  while (current != NULL) {
+    struct Node *temp = current;
+    current = current->next;
+    free(temp->note);
+    free(temp);
+  }
+}
+
+char capitalizeNotes(char note) {
+  return toupper(note);
 }
 
 // Convert note to its corresponding semitone value
@@ -131,59 +186,27 @@ int *getNoteSpacings(struct Node *head, int numNotes) {
 }
 
 char *findChord(int *spacings, char *root, int numSpacings) {
-  static char chord[128];
+  char *chord = (char *)malloc(CHORD_SIZE * sizeof(char));
 
-  if (spacings[0] == 4) {
-    if (spacings[1] == 3) {
-      snprintf(chord, sizeof(chord), "%s Major Triad", root);
-    } else if (spacings[1] == 4) {
-      snprintf(chord, sizeof(chord), "%s Augmented Triad", root);
+  if(spacings[0] == 4){
+    if(spacings[1] == 3){
+      snprintf(chord, CHORD_SIZE, "%s Major Triad", root);
+    }else if(spacings[1] == 4){
+      snprintf(chord, CHORD_SIZE, "%s Augmented Triad", root);
+    }else{
+      snprintf(chord, CHORD_SIZE, "Unknown Chord");
     }
-  } else if (spacings[0] == 3) {
-    if (spacings[1] == 3) {
-      snprintf(chord, sizeof(chord), "%s Diminished Triad", root);
-    } else if (spacings[1] == 4) {
-      snprintf(chord, sizeof(chord), "%s Minor Triad", root);
+  }else if(spacings[0] == 3){
+    if(spacings[1] == 3){
+      snprintf(chord, CHORD_SIZE, "%s Diminished Triad", root);
+    }else if(spacings[1] == 4){
+      snprintf(chord, CHORD_SIZE, "%s Minor Triad", root);
+    }else{
+      snprintf(chord, CHORD_SIZE, "Unknown Chord");
     }
-  } else {
-    snprintf(chord, sizeof(chord), "Unknown Chord");
+  }else{
+    snprintf(chord, CHORD_SIZE, "Unknown Chord");
   }
 
   return chord;
-}
-
-void cycleLeft(struct Node **head) {
-  if (*head == NULL || (*head)->next == NULL) return;
-
-  struct Node *first = *head;
-  struct Node *temp = *head;
-
-  while (temp->next != NULL) {
-    temp = temp->next;
-  }
-
-  // Move the first node to the end
-  *head = (*head)->next;  // Update the head to the next node
-  temp->next = first;     // Attach the first node to the end
-  first->next = NULL;     // Set the next of the first node to NULL
-}
-
-void insert(struct Node **head, char *note){
-  struct Node *newNode = createNode(note);
-  if (*head == NULL) {
-    *head = newNode;
-    return;
-  }
-  struct Node *temp = *head;
-  while (temp->next != NULL) {
-    temp = temp->next;
-  }
-  temp->next = newNode;
-}
-
-struct Node* createNode(char *note){
-  struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
-  newNode->note = strdup(note);
-  newNode->next = NULL;
-  return newNode;
 }
